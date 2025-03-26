@@ -1,0 +1,13 @@
+# Use the official cloudflared image as the builder
+FROM cloudflare/cloudflared:latest as builder
+
+# Use Alpine as the final image, which provides a shell
+FROM alpine:latest
+RUN apk add --no-cache gettext
+# Copy the cloudflared binary from the builder stage
+COPY --from=builder /usr/local/bin/cloudflared /usr/local/bin/cloudflared
+# Copy our custom entrypoint script into the image
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

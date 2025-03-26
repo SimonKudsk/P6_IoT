@@ -1,0 +1,9 @@
+.DS_Store
+.idea/
+
+.env
+config/cloudflared/cert.pem
+config/cloudflared/credentials.json
+config/cloudflared/config.yml
+
+data/
