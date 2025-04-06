@@ -2,6 +2,7 @@
 .idea/
 
 .env
+config/nginx/certs/*
 config/cloudflared/cert.pem
 config/cloudflared/credentials.json
 config/cloudflared/config.yml

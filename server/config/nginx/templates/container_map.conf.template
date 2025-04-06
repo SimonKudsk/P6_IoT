@@ -1,6 +1,10 @@
 # Link URLs to correct containers
 map $http_host $upstream {
-    ${INFLUX_DOMAIN} influxdb:8086;
-    ${GRAFANA_HOST} grafana:3000;
-    ${NODERED_HOST} nodered:1880;
+    # Default to 404 if no match is found
+    default 404;
+
+    # Map the hostnames to their containers
+    ${INFLUX_HOST} influxdb;
+    ${GRAFANA_HOST} grafana;
+    ${NODERED_HOST} nodered;
 }

@@ -58,7 +58,7 @@ For Grafana, the following variable is needed:
 ### Domains
 For the domains, the following variables are needed:
 
-- INFLUX_DOMAIN
+- INFLUX_HOST
 - GRAFANA_HOST
 - NODERED_HOST
 
