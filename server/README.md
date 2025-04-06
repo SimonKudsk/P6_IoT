@@ -28,6 +28,19 @@ After this, execute the command `cloudflared tunnel create <name>`. This will cr
 
 Once this is completed, ensure that you configure the correct subdomains for '<tunnel-uuid>.cfargotunnel.com' in the cloudflare dashboard with CNAME. You cannot use a wildcard; register each subdomain!
 
+## Permissions
+For the applications to work as intended, the folder './data' needs to permission 33:33. To achieve this, use the command `sudo chown -R 33:33 ./data`. This will set the owner and group of the folder to 'www-data', which is the user that runs the applications.
+
+## Certificates
+As the services depend on using HTTPS, we need to a certificate to run the services. For local development, we can use self-signed certificates. For production, we can use the certificates provided by cloudflare.
+
+### Create self-signed certificates
+To create self-signed certificates, use the following command:
+
+```openssl req -x509 -days 365 -out certificate.crt -keyout certificate.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=p6.test' -extensions EXT -config <( printf "[dn]\nCN=p6.test\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:p6.test,DNS:*.p6.test\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")```
+
+In the above command, replace 'p6.test' with the domain you configured earlier. This will create two files: `certificate.crt` and `certificate.key`. Move these files to the `/config/nginx/certs/` folder. If you encounter issues entering the sites in your browser, ensure that you trust the certificate. This can be done by opening the certificate in your browser and trusting it.
+
 ## Configuration of .env
 To configure this project properly, create a duplicate of the `.env_example` file and call it .env
 
@@ -58,7 +71,7 @@ For Grafana, the following variable is needed:
 ### Domains
 For the domains, the following variables are needed:
 
-- INFLUX_HOST
+- INFLUXDB_HOST
 - GRAFANA_HOST
 - NODERED_HOST
 
