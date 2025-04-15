@@ -1,4 +1,5 @@
 import time
+from devices.relay.pump_controller import PumpController
 
 class FlowMonitor:
     def __init__(self, target_liters: float, connector):
@@ -20,13 +21,17 @@ class FlowMonitor:
         Returns True if the target is reached, or False if there is no flow
         for more than 10 seconds.
         """
-        print("START PUMP")
-        started = False
 
         # Get the baseline and target totalizer values via the reader
+        started = False
         baseline_total = self.reader.read_totalizer()
         target_total = baseline_total + self.target_liters
         last_flow_time = None
+        pump_controller = PumpController()
+
+        # Start the pump
+        print("START PUMP")
+        pump_controller.toggle_pump(True)
 
         # Wait for flow to start
         while not started:
@@ -35,7 +40,7 @@ class FlowMonitor:
                 started = True
                 last_flow_time = time.time()
                 print("Flow has started")
-            time.sleep(0.25)
+            time.sleep(0.1)
 
         # Main monitoring loop
         while started:
@@ -56,6 +61,7 @@ class FlowMonitor:
                     return False
 
             if current_total >= target_total:
+                pump_controller.toggle_pump(False)
                 print("FINISHED: Target reached.")
                 return True
 
