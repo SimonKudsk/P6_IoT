@@ -17,7 +17,56 @@ services:
       - influxdb
       - grafana
       - nodered
-    
+    networks:
+        - iot-net
+
+  cloudflared:
+    profiles: [ 'prod' ]
+    build: ./dockerfiles/cloudflared/
+    depends_on:
+      - nginx
+    restart: always
+    volumes:
+      - ./config/cloudflared:/etc/cloudflared
+    environment:
+      - TUNNEL_ID=${TUNNEL_ID}
+      - WILDCARD_DOMAIN=${WILDCARD_DOMAIN}
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./config/mosquitto/config:/mosquitto/config
+      - ./data/mosquitto/data:/mosquitto/data
+      - ./data/mosquitto/log:/mosquitto/log
+    networks:
+      - iot-net
+
+  telegraf:
+    image: telegraf
+    container_name: telegraf
+    volumes:
+      - ./config/telegraf/telegraf.conf.template:/etc/telegraf/telegraf.conf.template:ro
+    environment:
+      - TELEGRAF_AGENT_INTERVAL=5s
+      - TELEGRAF_ROUND_INTERVAL=true
+      - MQTT_SERVERS=tcp://mosquitto:1883
+      - MQTT_TOPICS=kedel/#
+      - TELEGRAF_DATA_FORMAT=value
+      - TELEGRAF_DATA_TYPE=float
+      - TELEGRAF_TOPIC_TAG=topic
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      - INFLUX_ORG=${INFLUXDB_ORG}
+      - INFLUX_BUCKET=${INFLUXDB_DB}
+    depends_on:
+      - mosquitto
+      - influxdb
+    networks:
+      - iot-net
+
   influxdb:
     image: influxdb:latest
     container_name: influxdb
@@ -32,6 +81,8 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_DB}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+    networks:
+      - iot-net
 
   grafana:
     image: grafana/grafana:latest
@@ -49,6 +100,8 @@ services:
     volumes:
       - ./config/grafana/datasource.yml:/etc/grafana/provisioning/datasource.yml
       - ./data/grafana:/var/lib/grafana
+    networks:
+      - iot-net
 
   nodered:
     image: nodered/node-red:latest
@@ -58,15 +111,9 @@ services:
       - "1880:1880"
     volumes:
       - ./data/node-red:/data
+    networks:
+      - iot-net
 
-  cloudflared:
-    profiles: ['prod']
-    build: ./dockerfiles/cloudflared/
-    depends_on:
-      - nginx
-    restart: always
-    volumes:
-      - ./config/cloudflared:/etc/cloudflared
-    environment:
-      - TUNNEL_ID=${TUNNEL_ID}
-      - WILDCARD_DOMAIN=${WILDCARD_DOMAIN}
+networks:
+  iot-net:
+    driver: bridge
