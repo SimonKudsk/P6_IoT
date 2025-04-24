@@ -77,6 +77,7 @@ class FlowMonitor:
                 print("ERROR SIGNAL: No flow detected. Waiting 10 seconds before aborting.")
                 if last_flow_time is not None and (current_timestamp - last_flow_time > 10):
                     print("ERROR: No flow detected for more than 10 seconds. Aborting.")
+                    self.pump_controller.toggle_relay(False)
                     return False
 
             if highest_volume >= self.target_liters - 0.05:

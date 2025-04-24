@@ -37,7 +37,7 @@ class Mag6000Connector:
 
     def _initialize_instrument(self):
         # Initialize the device, and wait for the device file to be accessible
-        self._mount_device()
+        #self._mount_device()
         # Wait until the device file is accessible
         while not os.path.exists(self.port):
             print(f"Waiting for {self.port} to be accessible...")
