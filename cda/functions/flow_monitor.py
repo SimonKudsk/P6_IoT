@@ -35,13 +35,17 @@ class FlowMonitor:
         print("START PUMP")
         self.pump_controller.toggle_relay(True)
 
-        # Wait for flow to start
+        last_flow_time = time.time()
         while not started:
             current_total = self.reader.read_totalizer()
             if current_total > baseline_total:
                 started = True
                 last_flow_time = time.time()
                 print("Flow has started")
+            elif time.time() - last_flow_time > 10:   # same 10-s rule you use later
+                print("ERROR: No flow detected for 10 seconds after starting the pump. Aborting execution.")
+                self.pump_controller.toggle_relay(False)
+                return False
             time.sleep(0.1)
 
         # Main monitoring loop
@@ -86,3 +90,6 @@ class FlowMonitor:
                 return True
 
             time.sleep(0.25)
+
+        # Return false if execution fails
+        return False
