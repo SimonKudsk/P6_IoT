@@ -49,7 +49,7 @@ def main():
 
     finally:
         # Ensure relays are always off before exit
-        if monitor is FlowMonitor:
+        if monitor is not None:
             monitor.pump_controller.toggle_relay(False)
             print("Turned off pump.")
         if heater is not None:
