@@ -37,6 +37,7 @@ dependencies:
   provider: ^6.1.2
   flutter_platform_widgets: ^8.0.0
   flutter_adaptive_scaffold: ^0.3.2
+  mqtt_client: ^10.8.0
 
 dev_dependencies:
   flutter_test:
