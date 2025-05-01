@@ -6,12 +6,23 @@ import 'package:controller_app/simulation.dart';
 
 import 'mqtt/mqtt_manager.dart';
 
+
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
+  const String brokerAddress = 'broker.hivemq.com';
+  const int brokerPort =1883;
+  const String websocketUrl = 'ws://broker.hivemq.com:8084/mqtt';
+  const String clientId = 'StartupClient';
+  final mqttClient = MqttClientWrapper(
+    brokerAddress,
+    brokerPort,
+    clientId,
+    websocketUrl: websocketUrl,
+  );
+  final connectionState = await mqttClient.connect();
 
-  final mqttClient = MqttClientWrapper('broker.hivemq.com', 1883, 'StatupClient'); //Not runable on chrome (web)
-  await mqttClient.connect();
+
   runApp(
     //ChangeNotifierProvider used to run the simulation
     ChangeNotifierProvider(

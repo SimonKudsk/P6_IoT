@@ -31,10 +31,10 @@ class _ProductionLineDetailScreenState
     // overriding user input if the widget rebuilds.
     if (!_controllersInitialized) {
       final simulation =
-          context.read<PasteurizationSimulation>(); // Use read here
+          context.read<PasteurizationSimulation>();
       final line = simulation.getLineById(widget.lineId);
       if (line.name != "Error: Line not found") {
-        // Check if line is valid
+
         _tempController.text = line.targetTemp.toStringAsFixed(1);
         _amountController.text = line.targetAmount.toStringAsFixed(1);
         _controllersInitialized = true;
