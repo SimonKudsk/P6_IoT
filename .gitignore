@@ -1,2 +1,9 @@
 .DS_Store
 .idea/
+controller_app/linux/flutter/generated_plugin_registrant.cc
+controller_app/linux/flutter/generated_plugin_registrant.h
+controller_app/linux/flutter/generated_plugins.cmake
+controller_app/macos/Flutter/GeneratedPluginRegistrant.swift
+controller_app/windows/flutter/generated_plugin_registrant.cc
+controller_app/windows/flutter/generated_plugin_registrant.h
+controller_app/windows/flutter/generated_plugins.cmake
