@@ -4,7 +4,7 @@ map $http_host $upstream {
     default 404;
 
     # Map the hostnames to their containers
-    ${INFLUX_HOST} influxdb;
+    ${INFLUXDB_HOST} influxdb;
     ${GRAFANA_HOST} grafana;
     ${NODERED_HOST} nodered;
     ${MOSQUITTO_HOST} mosquitto;

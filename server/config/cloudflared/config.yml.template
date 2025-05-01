@@ -3,5 +3,7 @@ credentials-file: /etc/cloudflared/credentials.json
 
 ingress:
   - hostname: '${WILDCARD_DOMAIN}'
-    service: http://nginx:80
+    service: https://nginx:443
+    originRequest:
+            noTLSVerify: true #skip TLS verification, as communication occurs through the Docker network
   - service: http_status:404
