@@ -21,39 +21,16 @@ class _ProductionLineState extends State<ProductionLines> {
 
   //Method for line selection on homescreen
   void _selectLine(String lineId) {
-
     if (!mounted) return;
-    final currentContext = context;
-    final bool isSecondaryActive = Breakpoints.mediumAndUp.isActive(currentContext);
     setState(() {
-      if (_selectedLineId == lineId && isSecondaryActive) {
+      // If the same line is selected and secondary is active, deselect it
+      if (_selectedLineId == lineId &&
+          Breakpoints.mediumAndUp.isActive(context)) {
         _selectedLineId = null;
       } else {
         _selectedLineId = lineId;
       }
     });
-
-
-    if (!isSecondaryActive) {
-      final simulation = currentContext.read<PasteurizationSimulation>();
-      final String idToNavigate = lineId;
-      final line = simulation.getLineById(idToNavigate);
-      final String appBarTitle = line.name != "Error: Line not found" ? line.name : "Details";
-      setState(() { _selectedLineId = null; });
-      Navigator.push(
-          currentContext,
-          MaterialPageRoute(
-          builder: (context) => Scaffold(
-        appBar: AppBar(
-          title: Text(appBarTitle),
-          elevation: 1,
-        ),
-
-        body: ProductionLineDetailScreen(lineId: idToNavigate),
-          ),
-          ),
-      );
-    }
   }
 
   // Helper to build the list view.
@@ -67,7 +44,8 @@ class _ProductionLineState extends State<ProductionLines> {
         .of(context)
         .textTheme;
 
-    final bool isSecondaryActive = Breakpoints.mediumAndUp.isActive(context);
+
+
     return SafeArea(
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -109,7 +87,7 @@ class _ProductionLineState extends State<ProductionLines> {
               statusColor = Colors.green.shade600;
               break;
           }
-          final bool isSelected = _selectedLineId == line.id && isSecondaryActive;
+          final bool isSelected = _selectedLineId == line.id && Breakpoints.mediumAndUp.isActive(context);
 
           // Build list tile within a card
           return Card(
@@ -126,9 +104,6 @@ class _ProductionLineState extends State<ProductionLines> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
             ),
-              trailing: !isSecondaryActive
-                  ? const Icon(Icons.chevron_right)
-                  : null,
               selected: isSelected,
               onTap: () => _selectLine(line.id),
 
@@ -141,17 +116,30 @@ class _ProductionLineState extends State<ProductionLines> {
     );
   }
 
-
-// Helper widget to build the detail content area (Secondary Body Content)
   Widget _buildDetailContent(BuildContext context, String lineId) {
-    return ProductionLineDetailScreen(lineId: lineId);
+
+    final bool isSecondaryActive = Breakpoints.mediumAndUp.isActive(context);
+    return Scaffold(
+      appBar: !isSecondaryActive ? AppBar(
+        title: Text("Production $lineId"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() {
+              _selectedLineId = null;
+            });
+          },
+        ),
+      ) : null, // No AppBar needed for secondary body
+      body: ProductionLineDetailScreen(lineId: lineId),
+    );
   }
+
 
 // Build Method for ProductionLines
   @override
   Widget build(BuildContext context) {
     final bool isMediumOrLarger = Breakpoints.mediumAndUp.isActive(context);
-
     final simulation = context.watch<PasteurizationSimulation>();
     final bool shouldShowSecondary =
         _selectedLineId != null &&
@@ -181,6 +169,9 @@ class _ProductionLineState extends State<ProductionLines> {
       body: (_) {
         switch (_navigationIndex) {
           case 0:
+            if (!isMediumOrLarger && _selectedLineId != null) {
+              return _buildDetailContent(context, _selectedLineId!);
+            }
             return _buildListView(context, simulation);
           case 1:
             return const SettingsScreen();

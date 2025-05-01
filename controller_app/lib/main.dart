@@ -4,7 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:controller_app/simulation.dart';
 
-void main() {
+import 'mqtt/mqtt_manager.dart';
+
+void main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final mqttClient = MqttClientWrapper('broker.hivemq.com', 1883, 'StatupClient'); //Not runable on chrome (web)
+  await mqttClient.connect();
   runApp(
     //ChangeNotifierProvider used to run the simulation
     ChangeNotifierProvider(
