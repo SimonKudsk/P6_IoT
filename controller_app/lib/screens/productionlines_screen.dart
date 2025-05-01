@@ -121,7 +121,7 @@ class _ProductionLineState extends State<ProductionLines> {
     final bool isSecondaryActive = Breakpoints.mediumAndUp.isActive(context);
     return Scaffold(
       appBar: !isSecondaryActive ? AppBar(
-        title: Text("Production $lineId"),
+        title: Text("$lineId"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
