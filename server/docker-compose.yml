@@ -13,11 +13,67 @@ services:
       - INFLUXDB_HOST=${INFLUXDB_HOST:-influxdb.p6.test}
       - GRAFANA_HOST=${GRAFANA_HOST:-grafana.p6.test}
       - NODERED_HOST=${NODERED_HOST:-nodered.p6.test}
+      - MOSQUITTO_HOST=${MOSQUITTO_HOST:-mosquitto.p6.test}
     depends_on:
       - influxdb
       - grafana
       - nodered
-    
+    networks:
+        - iot-net
+
+  cloudflared:
+    profiles: [ 'prod' ]
+    build: ./dockerfiles/cloudflared/
+    depends_on:
+      - nginx
+    restart: always
+    volumes:
+      - ./config/cloudflared:/etc/cloudflared
+    environment:
+      - TUNNEL_ID=${TUNNEL_ID}
+      - WILDCARD_DOMAIN=${WILDCARD_DOMAIN}
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./config/mosquitto/mosquitto.conf:/etc/mosquitto:ro
+      - ./data/mosquitto/data:/mosquitto/data
+      - ./data/mosquitto/log:/mosquitto/log
+    networks:
+      - iot-net
+
+  telegraf:
+    build:
+      context: ./dockerfiles/telegraf
+    image: custom-telegraf  # Brug din brugerdefinerede image
+    container_name: telegraf
+    volumes:
+      - ./config/telegraf/telegraf.conf.template:/etc/telegraf/telegraf.conf.template:ro
+      - ./config/telegraf:/etc/telegraf:rw
+    environment:
+      - TELEGRAF_AGENT_INTERVAL=5s
+      - TELEGRAF_ROUND_INTERVAL=true
+      - MQTT_SERVERS=tcp://mosquitto:1883
+      - MQTT_TOPICS=kedel/#
+      - TELEGRAF_DATA_FORMAT=value
+      - TELEGRAF_DATA_TYPE=float
+      - TELEGRAF_TOPIC_TAG=topic
+      - INFLUXDB_HOSTNAME=${INFLUXDB_HOSTNAME}
+      - INFLUXDB_PORT=${INFLUXDB_PORT}
+      - INFLUXDB_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}           # Bucket (kan være den samme som database i InfluxDB v1.x)
+    command: >
+      sh -c "envsubst < /etc/telegraf/telegraf.conf.template > /tmp/telegraf.conf && exec telegraf --config /tmp/telegraf.conf"
+    depends_on:
+      - mosquitto
+      - influxdb
+    networks:
+      - iot-net
+
   influxdb:
     image: influxdb:latest
     container_name: influxdb
@@ -25,6 +81,7 @@ services:
       - "8086:8086"
     volumes:
       - ./data/influxdb:/var/lib/influxdb2
+      - ./dockerfiles/influxdb/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_ADMIN_USER}
@@ -32,11 +89,13 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_DB}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+    networks:
+      - iot-net
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    user: "33:33"
+    user: "33:33"     # if getting error of user setting , run the following command "sudo chown -R 33:33 ./data/grafana"
     depends_on:
       - influxdb
     ports:
@@ -49,24 +108,20 @@ services:
     volumes:
       - ./config/grafana/datasource.yml:/etc/grafana/provisioning/datasource.yml
       - ./data/grafana:/var/lib/grafana
+    networks:
+      - iot-net
 
   nodered:
     image: nodered/node-red:latest
     container_name: nodered
-    user: "33:33"
+    user: "33:33"     # if getting error of user setting , run the following command "sudo chown -R 33:33 ./data/node-red"
     ports:
       - "1880:1880"
     volumes:
       - ./data/node-red:/data
+    networks:
+      - iot-net
 
-  cloudflared:
-    profiles: ['prod']
-    build: ./dockerfiles/cloudflared/
-    depends_on:
-      - nginx
-    restart: always
-    volumes:
-      - ./config/cloudflared:/etc/cloudflared
-    environment:
-      - TUNNEL_ID=${TUNNEL_ID}
-      - WILDCARD_DOMAIN=${WILDCARD_DOMAIN}
+networks:
+  iot-net:
+    driver: bridge

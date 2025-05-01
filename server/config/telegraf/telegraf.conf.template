@@ -1,0 +1,13 @@
+[[outputs.influxdb_v2]]
+  urls = ["http://${INFLUXDB_HOSTNAME}:${INFLUXDB_PORT}"]
+  token = "${INFLUXDB_TOKEN}"
+  organization = "${INFLUXDB_ORG}"
+  bucket = "${INFLUXDB_BUCKET}"
+
+[[inputs.mqtt_consumer]]
+  servers = ["tcp://mosquitto:1883"]
+  topics = ["sensor/#"]
+  data_format = "json"
+  tag_keys = ["device"]
+  name_override = "iot_data"
+  qos = 1

@@ -13,6 +13,7 @@ First, enter the command `sudo nano /etc/hosts`. Here, you can configure local "
 127.0.0.1 influxdb.p6.test  
 127.0.0.1 grafana.p6.test  
 127.0.0.1 nodered.p6.test
+127.0.0.1 mosquitto.p6.test
 ```
 
 With this, you should be able to easily access the project.
