@@ -13,6 +13,7 @@ services:
       - INFLUXDB_HOST=${INFLUXDB_HOST:-influxdb.p6.test}
       - GRAFANA_HOST=${GRAFANA_HOST:-grafana.p6.test}
       - NODERED_HOST=${NODERED_HOST:-nodered.p6.test}
+      - MOSQUITTO_HOST=${MOSQUITTO_HOST:-mosquitto.p6.test}
     depends_on:
       - influxdb
       - grafana
@@ -38,7 +39,7 @@ services:
     ports:
       - "1883:1883"
     volumes:
-      - ./config/mosquitto/config:/mosquitto/config
+      - ./config/mosquitto/mosquitto.conf:/etc/mosquitto:ro
       - ./data/mosquitto/data:/mosquitto/data
       - ./data/mosquitto/log:/mosquitto/log
     networks:

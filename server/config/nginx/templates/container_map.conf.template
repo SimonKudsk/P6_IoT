@@ -7,4 +7,5 @@ map $http_host $upstream {
     ${INFLUX_HOST} influxdb;
     ${GRAFANA_HOST} grafana;
     ${NODERED_HOST} nodered;
+    ${MOSQUITTO_HOST} mosquitto;
 }

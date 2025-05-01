@@ -6,9 +6,8 @@
 
 [[inputs.mqtt_consumer]]
   servers = ["tcp://mosquitto:1883"]
-  topics = ["iot/temperature"]
+  topics = ["sensor/#"]
   data_format = "json"
   tag_keys = ["device"]
   name_override = "iot_data"
-  client_id = "telegraf-mqtt"
-  qos = 1   #0 = At most once, 1 = 	At least once, 2 = 	Exactly once
+  qos = 1
