@@ -25,7 +25,6 @@ class Mag6000Reader:
         Reads the totalizer value from register 3014 using function code 3.
         Returns the cumulative volume (in liters) as a float.
         The raw value is assumed to represent a milliliter count normalized as a double.
-        Multiplying by 1000 converts 0.196354 to 196.354 liters.
         """
         try:
             # Read 4 registers (8 bytes) starting at address 3014
@@ -39,8 +38,8 @@ class Mag6000Reader:
             raw_bytes = struct.pack('>HHHH', registers[0], registers[1], registers[2], registers[3])
             # Unpack the bytes as a 64-bit double in big-endian format
             totalizer_ml = struct.unpack('>d', raw_bytes)[0]
-            # Convert the normalized value to liters by multiplying by 1000
-            totalizer_liters = totalizer_ml * 1000.0
+            # Adjusted conversion factor per documentation calibration
+            totalizer_liters = totalizer_ml
             return totalizer_liters
         except Exception as e:
             print("Error unpacking totalizer:", e)
