@@ -1,6 +1,9 @@
+import 'dart:ui_web';
+
 import 'package:controller_app/screens/Productionline_detail_screen.dart';
 import 'package:controller_app/screens/productionlines_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:provider/provider.dart';
 import 'package:controller_app/simulation.dart';
 
@@ -10,17 +13,27 @@ import 'mqtt/mqtt_manager.dart';
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
+
+/*  //Mqtt config
   const String brokerAddress = 'broker.hivemq.com';
   const int brokerPort =1883;
-  const String websocketUrl = 'ws://broker.hivemq.com:8084/mqtt';
   const String clientId = 'StartupClient';
+
+  //instance of mqttclientwrapper
   final mqttClient = MqttClientWrapper(
     brokerAddress,
     brokerPort,
     clientId,
-    websocketUrl: websocketUrl,
+  );*/
+  const String brokerUrl = 'wss://y50ea111.ala.eu-central-1.emqxsl.com:8084/mqtt';
+  const String clientId = 'StartupClientBrowser';
+
+// Instance of MqttClientWrapper using MqttBrowserClient
+  final mqttClient = MqttClientWrapper(
+    brokerUrl,
+    clientId,
   );
-  final connectionState = await mqttClient.connect();
+  await mqttClient.connect();
 
 
   runApp(
