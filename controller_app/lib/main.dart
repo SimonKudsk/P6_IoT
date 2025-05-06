@@ -14,25 +14,27 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-/*  //Mqtt config
+/*  //Mqtt config for server connection change for server if needed.
+
   const String brokerAddress = 'broker.hivemq.com';
   const int brokerPort =1883;
   const String clientId = 'StartupClient';
 
-  //instance of mqttclientwrapper
   final mqttClient = MqttClientWrapper(
     brokerAddress,
     brokerPort,
     clientId,
   );*/
+
+  // Using MqttBrowserClient
   const String brokerUrl = 'wss://y50ea111.ala.eu-central-1.emqxsl.com:8084/mqtt';
   const String clientId = 'StartupClientBrowser';
-
-// Instance of MqttClientWrapper using MqttBrowserClient
   final mqttClient = MqttClientWrapper(
     brokerUrl,
     clientId,
   );
+
+  //keep
   await mqttClient.connect();
 
 

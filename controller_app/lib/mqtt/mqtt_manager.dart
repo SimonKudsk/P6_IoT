@@ -2,28 +2,16 @@
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:mqtt_client/mqtt_browser_client.dart';
+
+
 /* Server connection
 //https://www.emqx.com/en/blog/using-mqtt-in-flutter
 class MqttClientWrapper {
 // The ? signifies that the variable client is nullable – meaning it is allowed to hold the value null
   MqttClient? client;
-
-
   MqttClientWrapper(String brokerAddress, int brokerPort, String clientId) {
     print('Initializing MqttServerClient...');
     client = MqttServerClient.withPort(brokerAddress, clientId, brokerPort);
-
-    client?.logging(on: true);
-    client?.keepAlivePeriod = 120;
-
-  final connMessage = MqttConnectMessage()
-  //authentication here if needed
-  .withWillTopic('willTopic')
-  .withWillMessage('willMessage')
-  .startClean()
-  .withWillQos(MqttQos.atLeastOnce);
-
-
 */
 class MqttClientWrapper {
   MqttClient? client;
@@ -33,7 +21,7 @@ class MqttClientWrapper {
     print('Initializing MqttBrowserClient for $identifier...');
     client = MqttBrowserClient(brokerUrl, identifier);
 
-    client?.port = 8084;
+    client?.port = 8084;//change for server if needed
     client?.logging(on: true);
     client?.keepAlivePeriod = 60;
 
@@ -45,6 +33,7 @@ class MqttClientWrapper {
     client?.onSubscribeFail = onSubscribeFail;
     client?.onUnsubscribed = onUnsubscribed;
     client?.pongCallback = pong;
+
 
     final String username = 'test';
     final String password = '1234';
