@@ -1,12 +1,8 @@
-import 'dart:ui_web';
-
 import 'package:controller_app/screens/Productionline_detail_screen.dart';
 import 'package:controller_app/screens/productionlines_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:mqtt_client/mqtt_client.dart';
 import 'package:provider/provider.dart';
 import 'package:controller_app/simulation.dart';
-
 import 'mqtt/mqtt_manager.dart';
 
 
@@ -27,16 +23,23 @@ void main() async {
   );*/
 
   // Using MqttBrowserClient
-  const String brokerUrl = 'wss://y50ea111.ala.eu-central-1.emqxsl.com:8084/mqtt';
-  const String clientId = 'StartupClientBrowser';
+  const String brokerUrl = 'wss://mosquitto.waterguys.dk:443/mqtt';
+  const String clientId = 'Flutter_WaterGuysClient';
   final mqttClient = MqttClientWrapper(
     brokerUrl,
     clientId,
+
   );
 
   //keep
+  print('Attempting to connect...');
   await mqttClient.connect();
-
+  if (mqttClient.isConnected) {
+    print('Connection successful. Executing WaterGuys process...');
+    await mqttClient.executeWaterGuysProcess();
+  } else {
+    print('Connection failed. Cannot execute WaterGuys process.');
+  }
 
   runApp(
     //ChangeNotifierProvider used to run the simulation
