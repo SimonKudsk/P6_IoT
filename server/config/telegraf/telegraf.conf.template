@@ -8,6 +8,6 @@
   servers = ["tcp://mosquitto:1883"]
   topics = ["sensor/#"]
   data_format = "json"
-  tag_keys = ["device"]
+  tag_keys = ["device", "lot_number", "line"]
   name_override = "iot_data"
   qos = 1

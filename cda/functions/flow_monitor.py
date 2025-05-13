@@ -1,23 +1,26 @@
 import time
 from devices.mag6000.mag6000_reader import Mag6000Reader
 from devices.relay.relay_controller import RelayController
+from mqtt.mqtt_publisher import mqtt_publisher
 
 class FlowMonitor:
-    def __init__(self, target_liters: float, connector, pump_relay_pin: int = 18):
+    def __init__(self, target_liters: float, connector, pump_relay_pin: int = 18, publisher: mqtt_publisher = None):
         """
         Initializes the flow monitor.
 
         :param target_liters: The target volume (in liters) to be added.
         :param connector: An instance of Mag6000Connector.
         :param pump_relay_pin: The GPIO pin for the pump relay.
+        :param publisher: An instance of mqtt_publisher for publishing temperature progress.
         """
+        self.publisher = publisher
         self.target_liters = target_liters
         self.connector = connector
         self.flow_threshold = 10  # minimum flow rate in L/h considered as "flowing"
         self.reader = Mag6000Reader(connector) # Instantiate the reader that will be used for reading values.
         self.pump_controller = RelayController(pump_relay_pin) # Initialize the relay controller for the pump
 
-    def run(self) -> bool:
+    def run(self) -> float | None:
         """
         Monitors the flow until the target liter count is reached.
         Returns True if the target is reached, or False if there is no flow
@@ -73,6 +76,7 @@ class FlowMonitor:
             highest_volume = max(current_total, volume_moved)
 
             print(f"Progress: {highest_volume:.2f} out of {self.target_liters:.2f} liters passed")
+            self.publisher.publish_flow_progress(highest_volume)
 
             if flow_rate > self.flow_threshold:
                 print(f"Flow going at {flow_rate:.2f} l/h")
@@ -82,14 +86,14 @@ class FlowMonitor:
                 if last_flow_time is not None and (current_timestamp - last_flow_time > 10):
                     print("ERROR: No flow detected for more than 10 seconds. Aborting.")
                     self.pump_controller.toggle_relay(False)
-                    return False
+                    return None
 
             if highest_volume >= self.target_liters - 0.05:
                 self.pump_controller.toggle_relay(False)
                 print("FINISHED: Target reached.")
-                return True
+                return highest_volume
 
             time.sleep(0.25)
 
         # Return false if execution fails
-        return False
+        return None
