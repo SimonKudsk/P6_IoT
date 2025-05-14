@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
 import 'package:provider/provider.dart';
-import 'package:controller_app/simulation.dart';
-import '../main.dart';
+import '../model/enum/LineStatus.dart';
+import 'settings_screen.dart';
+import '../controller/pasteurization_base.dart';
 import 'productionline_detail_screen.dart';
 
 
@@ -35,7 +36,7 @@ class _ProductionLineState extends State<ProductionLines> {
 
   // Helper to build the list view.
   Widget _buildListView(BuildContext context,
-      PasteurizationSimulation service) {
+      PasteurizationBase service) {
     final lines = service.lines;
     final colorScheme = Theme
         .of(context)
@@ -96,10 +97,8 @@ class _ProductionLineState extends State<ProductionLines> {
               leading: Icon(statusIcon, color: statusColor),
               title: Text(line.name),
               subtitle: Text(
-                'Status: ${line.statusString} | Temp:${line.currentTemp
-                    .toStringAsFixed(1)}°C | Amount: ${line.processedAmount
-                    .toStringAsFixed(1)}/${line.targetAmount.toStringAsFixed(
-                    1)}L',
+                'Status: ${line.statusString} | Temp: ${line.displayTemp}°C | '
+                'Amount: ${line.displayAmount}/${line.targetAmount?.toStringAsFixed(1) ?? '-'} L',
           style: textTheme.bodySmall,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -140,7 +139,7 @@ class _ProductionLineState extends State<ProductionLines> {
   @override
   Widget build(BuildContext context) {
     final bool isMediumOrLarger = Breakpoints.mediumAndUp.isActive(context);
-    final simulation = context.watch<PasteurizationSimulation>();
+    final service = context.watch<PasteurizationBase>();
     final bool shouldShowSecondary =
         _selectedLineId != null &&
             _navigationIndex == 0 &&
@@ -172,7 +171,7 @@ class _ProductionLineState extends State<ProductionLines> {
             if (!isMediumOrLarger && _selectedLineId != null) {
               return _buildDetailContent(context, _selectedLineId!);
             }
-            return _buildListView(context, simulation);
+            return _buildListView(context, service);
           case 1:
             return const SettingsScreen();
           default:

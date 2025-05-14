@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../simulation.dart';
+import '../model/enum/LineStatus.dart';
+import '../model/line.dart';
+import '../controller/pasteurization_base.dart';
 
 class ProductionLineDetailScreen extends StatefulWidget {
   static const routeName = '/line-detail';
@@ -31,12 +33,14 @@ class _ProductionLineDetailScreenState
     // overriding user input if the widget rebuilds.
     if (!_controllersInitialized) {
       final simulation =
-          context.read<PasteurizationSimulation>();
+          context.read<PasteurizationBase>();
       final line = simulation.getLineById(widget.lineId);
-      if (line.name != "Error: Line not found") {
+      if (line?.name != "Error: Line not found") {
 
-        _tempController.text = line.targetTemp.toStringAsFixed(1);
-        _amountController.text = line.targetAmount.toStringAsFixed(1);
+        _tempController.text =
+            line!.targetTemp != null ? line.targetTemp!.toStringAsFixed(1) : '';
+        _amountController.text =
+            line.targetAmount != null ? line.targetAmount!.toStringAsFixed(1) : '';
         _controllersInitialized = true;
       }
     }
@@ -56,7 +60,7 @@ class _ProductionLineDetailScreenState
       final temp = double.tryParse(_tempController.text) ?? 0.0;
       final amount = double.tryParse(_amountController.text) ?? 0.0;
       // Use context.read for actions inside callbacks
-      context.read<PasteurizationSimulation>().activateLine(
+      context.read<PasteurizationBase>().activateLine(
         widget.lineId,
         temp,
         amount,
@@ -67,13 +71,13 @@ class _ProductionLineDetailScreenState
   void _requestDeactivation(BuildContext context) {
     // Pass context if needed outside build
     // Use context.read for actions inside callbacks
-    context.read<PasteurizationSimulation>().deactivateLine(widget.lineId);
+    context.read<PasteurizationBase>().deactivateLine(widget.lineId);
   }
 
   void _resetError(BuildContext context, Line line) {
     // Pass context and line data
     // Use context.read for actions inside callbacks
-    final service = context.read<PasteurizationSimulation>();
+    final service = context.read<PasteurizationBase>();
     if (line.name != "Error: Line not found" &&
         line.status == LineStatus.error) {
       service.resetLineError(widget.lineId);
@@ -91,13 +95,13 @@ class _ProductionLineDetailScreenState
   // Build method for Detail Screen
   @override
   Widget build(BuildContext context) {
-    final simulation = context.watch<PasteurizationSimulation>();
+    final simulation = context.watch<PasteurizationBase>();
     final line = simulation.getLineById(widget.lineId);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     // Handle case where the line ID might be invalid
-    if (line.name == "Error: Line not found") {
+    if (line?.name == "Error: Line not found" || line == null) {
       return Scaffold(
         appBar: AppBar(title: const Text("Error")),
         body: const Center(child: Text("Line details not found.")),
@@ -106,7 +110,7 @@ class _ProductionLineDetailScreenState
     // --- Determine Control States ---
     // Inputs should only be enabled when the line is ready for activation
     final bool inputsEnabled =
-        line.status == LineStatus.stopped || line.status == LineStatus.error;
+        line!.status == LineStatus.stopped || line.status == LineStatus.error;
     // Determine if the line is currently in any active state for progress bar
     final bool isFilling = line.status == LineStatus.filling;
     final bool isHeating = line.status == LineStatus.heating;
@@ -165,11 +169,11 @@ class _ProductionLineDetailScreenState
 
     // --- Calculate Amount Progress ---
     double? amountProgress;
-    if (line.targetAmount > 0) {
-      amountProgress = (line.processedAmount / line.targetAmount).clamp(
-        0.0,
-        1.0,
-      );
+    if (line.targetAmount != null &&
+        line.targetAmount! > 0 &&
+        line.processedAmount != null) {
+      amountProgress =
+          (line.processedAmount! / line.targetAmount!).clamp(0.0, 1.0);
     }
     // --- End Progress Calculation ---
 
@@ -195,10 +199,10 @@ class _ProductionLineDetailScreenState
               ),
               const SizedBox(height: 8),
               Text(
-                'Current Temp: ${line.currentTemp.toStringAsFixed(1)}°C (Target: ${line.targetTemp.toStringAsFixed(1)}°C)',
+                'Current Temp: ${line.displayTemp}°C (Target: ${line.targetTemp?.toStringAsFixed(1) ?? '-'}°C)',
               ),
               Text(
-                'Processed Amount: ${line.processedAmount.toStringAsFixed(1)} / ${line.targetAmount.toStringAsFixed(1)} L',
+                'Processed Amount: ${line.displayAmount} / ${line.targetAmount?.toStringAsFixed(1) ?? '-'} L',
               ),
               // Show target amount too
 
