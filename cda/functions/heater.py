@@ -4,7 +4,7 @@ from devices.ds18b20.ds18b20_reader import DS18B20Reader, DS18B20Error
 from mqtt.mqtt_publisher import mqtt_publisher
 
 class Heater:
-    def __init__(self, target_temperature=100, kettle_relay_pin: int = 17, publisher: mqtt_publisher = None):
+    def __init__(self, target_temperature=100, kettle_relay_pin: int = 17, publisher: mqtt_publisher = None, stop_event=None):
         """
         Initializes the heater.
         :param target_temperature: The target temperature in Celsius.
@@ -12,6 +12,7 @@ class Heater:
         :param publisher: An instance of mqtt_publisher for publishing temperature progress.
         """
         self.publisher = publisher
+        self._stop_event = stop_event
         self.target_temperature = target_temperature
         self.relay_controller = RelayController(kettle_relay_pin)
         self.temp_sensor = DS18B20Reader()
@@ -25,6 +26,12 @@ class Heater:
 
         try:
             while self.is_heating:
+                # Check for stop signal
+                if self._stop_event and self._stop_event.is_set():
+                    print("Batch stopped by user.")
+                    self.relay_controller.toggle_relay(False)
+                    return None
+
                 current_temp = self.temp_sensor.read_temp_c()
                 print(f"Current temperature: {current_temp:.2f} °C")
                 self.publisher.publish_temp_progress(current_temp)
@@ -43,4 +50,3 @@ class Heater:
             self.relay_controller.toggle_relay(False)
             self.is_heating = False
             return None
-

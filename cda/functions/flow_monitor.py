@@ -4,7 +4,7 @@ from devices.relay.relay_controller import RelayController
 from mqtt.mqtt_publisher import mqtt_publisher
 
 class FlowMonitor:
-    def __init__(self, target_liters: float, connector, pump_relay_pin: int = 18, publisher: mqtt_publisher = None):
+    def __init__(self, target_liters: float, connector, pump_relay_pin: int = 18, publisher: mqtt_publisher = None, stop_event=None):
         """
         Initializes the flow monitor.
 
@@ -19,6 +19,7 @@ class FlowMonitor:
         self.flow_threshold = 10  # minimum flow rate in L/h considered as "flowing"
         self.reader = Mag6000Reader(connector) # Instantiate the reader that will be used for reading values.
         self.pump_controller = RelayController(pump_relay_pin) # Initialize the relay controller for the pump
+        self._stop_event = stop_event
 
     def run(self) -> float | None:
         """
@@ -53,6 +54,11 @@ class FlowMonitor:
 
         # Main monitoring loop
         while started:
+            # Check for stop signal
+            if self._stop_event and self._stop_event.is_set():
+                self.pump_controller.toggle_relay(False)
+                return None
+
             current_timestamp = time.time()
             elapsed_time = current_timestamp - prev_timestamp
             prev_timestamp = current_timestamp

@@ -6,10 +6,19 @@ import signal
 from mqtt.mqtt_connector import mqtt_connector
 from mqtt.mqtt_watcher import mqtt_watcher
 from mqtt.mqtt_publisher import mqtt_publisher
+import threading
+import json
+
+
+def deactivate_line(publisher):
+    """Stops the current process."""
+    publisher.publish_error("interrupted")
+
 
 def _shutdown_handler(signum, frame):
     """Monitor keyboard interrupts and shutdown signals."""
     raise KeyboardInterrupt
+
 
 def main():
     # GPIO pins
@@ -22,6 +31,10 @@ def main():
     # MQTT connection
     mqtt = mqtt_connector()
     mqtt.connect()
+
+    # Subscribe to stop signals
+    STOP_TOPIC = "request/process/stop"
+    mqtt.subscribe(STOP_TOPIC, qos=1)
 
     # Set up watcher → listens for new requests
     watcher = mqtt_watcher(mqtt)
@@ -39,6 +52,22 @@ def main():
             target_temp = order["temperature"]
             line = order["line"]
             lot_id = order["lot_number"]
+
+            # Set up stop event for this lot
+            stop_event = threading.Event()
+
+            def _on_stop_signal(client, userdata, msg):
+                try:
+                    payload = json.loads(msg.payload.decode())
+                    if payload.get("lot_number") == lot_id:
+                        print(f"Stop signal received for lot {lot_id}")
+                        stop_event.set()
+                except json.JSONDecodeError:
+                    pass
+
+            # Register stop callback
+            mqtt.register_callback(_on_stop_signal)
+
             publisher = mqtt_publisher(mqtt, lot_id, line)
             print(f"Received request → {liters_to_add} L at {target_temp} °C")
 
@@ -51,26 +80,32 @@ def main():
                         connector=connector,
                         pump_relay_pin=pump_relay_pin,
                         publisher=publisher,
+                        stop_event=stop_event,
                     )
                     final_liters = monitor.run()
 
                 if final_liters is not None:
                     publisher.publish_flow_final(final_liters)
                 else:
-                    publisher.publish_error("interrupted")
+                    deactivate_line(publisher)
+                    print("Flow interrupted")
+                    continue
 
                 # ------------------ Heating phase -----------------
                 heater = Heater(
                     target_temperature=target_temp,
                     kettle_relay_pin=kettle_relay_pin,
                     publisher=publisher,
+                    stop_event=stop_event,
                 )
                 final_temp = heater.run()
 
                 if final_temp is not None:
                     publisher.publish_temp_final(final_temp)
                 else:
-                    publisher.publish_error("interrupted")
+                    deactivate_line(publisher)
+                    print("Heater interrupted")
+                    continue
 
 
             except Exception as exc:
