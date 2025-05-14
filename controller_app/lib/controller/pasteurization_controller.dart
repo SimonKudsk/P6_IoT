@@ -92,6 +92,12 @@ class PasteurizationController extends PasteurizationBase {
     final line = getLineById(lineId);
     if (line == null) return;
 
+    // Publish stop signal for the active lot
+    final lotNumber = _lotForLine[lineId];
+    if (lotNumber != null && _manager.mqttClient != null) {
+      _publisher.publishStop(lotNumber);
+    }
+
     // If line is not busy, ignore request
     _watchers[lineId]?.dispose();
     _watchers.remove(lineId);

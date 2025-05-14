@@ -47,4 +47,15 @@ class MqttPublisher {
 
     return lotNumber;
   }
+
+  /// Publish a stop signal to the MQTT broker
+  void publishStop(String lotNumber) {
+    final stopPayload = json.encode({'lot_number': lotNumber});
+    final builder = MqttClientPayloadBuilder()..addString(stopPayload);
+    client.publishMessage(
+      _topicRequest,
+      MqttQos.atLeastOnce,
+      builder.payload!,
+    );
+  }
 }
