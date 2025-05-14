@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:mqtt_client/mqtt_browser_client.dart';
+
+// Import of platform-specific MQTT client implementations
+import 'mqtt_platform_clients/mqtt_platform_client_stub.dart'
+  if (dart.library.html) 'mqtt_platform_clients/mqtt_platform_client_web.dart'
+  if (dart.library.io) 'mqtt_platform_clients/mqtt_platform_client_native.dart';
 
 class MqttManager {
   MqttClient? client;
@@ -9,7 +13,7 @@ class MqttManager {
 
   MqttManager(String brokerUrl, this.identifier) {
     // Create a new MQTT client instance
-    client = MqttBrowserClient(brokerUrl, identifier);
+    client = getPlatformMqttClient(brokerUrl, identifier);
     client!.logging(on: true);
     client!.keepAlivePeriod = 60;
     client!.port = 443; //change for server if needed
@@ -52,7 +56,7 @@ class MqttManager {
     print(' Browser Client Initialized and Configured.');
   }
 
-  /// Connect to the MQTT broker
+  ///
   Future<void> connect() async {
     if (client == null) {
       print('Client not initialized.');
