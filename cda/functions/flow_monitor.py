@@ -46,10 +46,10 @@ class FlowMonitor:
                 started = True
                 last_flow_time = time.time()
                 print("Flow has started")
-            elif time.time() - last_flow_time > 10:   # same 10-s rule you use later
+            elif time.time() - last_flow_time > 10:
                 print("ERROR: No flow detected for 10 seconds after starting the pump. Aborting execution.")
                 self.pump_controller.toggle_relay(False)
-                return False
+                return None
             time.sleep(0.1)
 
         # Main monitoring loop

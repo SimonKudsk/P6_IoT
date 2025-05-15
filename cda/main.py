@@ -6,8 +6,11 @@ import signal
 from mqtt.mqtt_connector import mqtt_connector
 from mqtt.mqtt_watcher import mqtt_watcher
 from mqtt.mqtt_publisher import mqtt_publisher
+from mqtt.device_status import DeviceStatusPublisher
 import threading
 import json
+
+DEVICE_ID = "cda-001"
 
 
 def deactivate_line(publisher):
@@ -30,7 +33,10 @@ def main():
 
     # MQTT connection
     mqtt = mqtt_connector()
+    status_publisher = DeviceStatusPublisher(mqtt, DEVICE_ID)
+    status_publisher.configure_lwt()
     mqtt.connect()
+    status_publisher.mark_online()
 
     # Subscribe to stop signals
     STOP_TOPIC = "request/process/stop"
@@ -52,6 +58,7 @@ def main():
             target_temp = order["temperature"]
             line = order["line"]
             lot_id = order["lot_number"]
+            status_publisher.mark_occupied(lot_id)
 
             # Set up stop event for this lot
             stop_event = threading.Event()
@@ -89,6 +96,7 @@ def main():
                 else:
                     deactivate_line(publisher)
                     print("Flow interrupted")
+                    status_publisher.mark_error("Flow interrupted")
                     continue
 
                 # ------------------ Heating phase -----------------
@@ -102,20 +110,24 @@ def main():
 
                 if final_temp is not None:
                     publisher.publish_temp_final(final_temp)
+                    status_publisher.mark_available()
                 else:
                     deactivate_line(publisher)
                     print("Heater interrupted")
+                    status_publisher.mark_error("Heater interrupted")
                     continue
 
 
             except Exception as exc:
                 # Capture *any* error from filling/heating
                 publisher.publish_error(str(exc))
+                status_publisher.mark_available()
 
     except KeyboardInterrupt:
         print("Operation interrupted by user. Shutting down.")
 
     finally:
+        status_publisher.mark_offline()
         # Ensure pump is off
         pump_relay_controller = RelayController(pump_relay_pin)
         pump_relay_controller.toggle_relay(False)

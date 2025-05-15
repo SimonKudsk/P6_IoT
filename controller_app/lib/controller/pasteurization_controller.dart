@@ -5,14 +5,13 @@ import '../model/line.dart';
 import '../mqtt/mqtt_manager.dart';
 import '../mqtt/mqtt_publisher.dart';
 import '../mqtt/mqtt_watcher.dart';
+import '../mqtt/device_status.dart';
 
 /// PasteurizationController is responsible for activation and deactivation of production lines,
 /// along with publishing and listening for progress of orders.
 class PasteurizationController extends PasteurizationBase {
   /// Static list of lines - should be replaced with a dynamic one.
-  final List<Line> _lines = [
-    Line(id: '1', name: 'Line A'),
-  ];
+  final List<Line> _lines = [];
 
   List<Line> get lines => List.unmodifiable(_lines);
 
@@ -20,6 +19,8 @@ class PasteurizationController extends PasteurizationBase {
   final MqttManager _manager;
   /// MQTT publisher used to send orders to the production lines.
   late final MqttPublisher _publisher;
+
+  late final DeviceStatusService _deviceStatusService;
 
   /// Active watchers keyed by line ID, used to monitor progress of each order.
   final Map<String, MqttWatcher> _watchers = {};
@@ -39,6 +40,11 @@ class PasteurizationController extends PasteurizationBase {
       return;
     }
     _publisher = MqttPublisher(_manager.mqttClient!);
+
+    // start listening for CDA statuses
+    _deviceStatusService = DeviceStatusService(_manager);
+    await _deviceStatusService.init();
+    _deviceStatusService.statusStream.listen(_onDeviceStatusUpdate);
   }
 
   /// Map a line ID string to its identifier for MQTT.
@@ -144,9 +150,50 @@ class PasteurizationController extends PasteurizationBase {
     // Reset line status
     final line = getLineById(lineId);
     if (line != null) {
-      line.status = LineStatus.stopped;
+      line.status = LineStatus.available;
       notifyListeners();
     }
+  }
+
+  /// Map availability to our UI status.
+  LineStatus _mapAvailability(LineStatus avail) {
+    switch (avail) {
+      case LineStatus.available:
+        return LineStatus.stopped;
+      case LineStatus.running:
+        return LineStatus.filling;
+      case LineStatus.offline:
+        return LineStatus.offline;
+      case LineStatus.error:
+        return LineStatus.error;
+      case LineStatus.stopped:
+        return LineStatus.stopped;
+      case LineStatus.filling:
+        return LineStatus.filling;
+      case LineStatus.heating:
+        return LineStatus.heating;
+    }
+  }
+
+  /// Handle an incoming status update.
+  void _onDeviceStatusUpdate(DeviceStatus deviceStatus) {
+    final idx = _lines.indexWhere((l) => l.id == deviceStatus.deviceId);
+    if (idx >= 0) {
+      // update existing line
+      _lines[idx].status = _mapAvailability(deviceStatus.status);
+      _lines[idx].lotNumber = deviceStatus.lotNumber;
+      _lines[idx].errorMsg = deviceStatus.errorMsg;
+    } else {
+      // add new device
+      _lines.add(Line(
+        id: deviceStatus.deviceId,
+        name: 'CDA ${deviceStatus.deviceId}',
+        status: _mapAvailability(deviceStatus.status),
+        lotNumber: deviceStatus.lotNumber,
+        errorMsg: deviceStatus.errorMsg,
+      ));
+    }
+    notifyListeners();
   }
 
   /// Clean up all MQTT watchers and disconnect manager when controller is disposed.

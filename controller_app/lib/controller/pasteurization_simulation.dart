@@ -149,6 +149,13 @@ class PasteurizationSimulation extends PasteurizationBase {
             }
             break;
 
+        /// Offline
+          case LineStatus.offline:
+            // Simulate offline state
+            line.currentTemp = null;
+            line.processedAmount = null;
+            break;
+
         /// Error / stop state
           case LineStatus.stopped:
           case LineStatus.error:
@@ -170,6 +177,8 @@ class PasteurizationSimulation extends PasteurizationBase {
             line.status = LineStatus.stopped;
             changed = true;
             break;
+          case LineStatus.available:
+            line.status = LineStatus.available;
         }
 
         // --- Clamp Temperature (Safety Net) ---

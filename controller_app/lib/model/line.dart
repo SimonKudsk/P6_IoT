@@ -8,6 +8,8 @@ class Line {
   double? targetAmount;
   double? currentTemp;
   double? processedAmount;
+  String? lotNumber;
+  String? errorMsg;
 
   Line({
     required this.id,
@@ -17,6 +19,8 @@ class Line {
     this.targetAmount = null,
     this.currentTemp = null,
     this.processedAmount = null,
+    this.lotNumber = null,
+    this.errorMsg = null,
   });
 
   String get statusString {
@@ -31,6 +35,10 @@ class Line {
         return "Heating";
       case LineStatus.error:
         return "Error";
+      case LineStatus.offline:
+        return "Offline";
+      case LineStatus.available:
+        return "Available";
     }
   }
 
@@ -38,4 +46,8 @@ class Line {
       currentTemp == null ? '-' : currentTemp!.toStringAsFixed(1);
   String get displayAmount =>
       processedAmount == null ? '-' : processedAmount!.toStringAsFixed(1);
+  String get displayLotNumber =>
+      lotNumber == null ? '-' : lotNumber!;
+  String get displayErrorMsg =>
+      errorMsg == null ? '-' : errorMsg!;
 }
