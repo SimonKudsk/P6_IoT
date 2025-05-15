@@ -35,8 +35,9 @@ def main():
     mqtt = mqtt_connector()
     status_publisher = DeviceStatusPublisher(mqtt, DEVICE_ID)
     status_publisher.configure_lwt()
+    # When connected, instantly mark as online
+    mqtt.register_on_connect(status_publisher.mark_online)
     mqtt.connect()
-    status_publisher.mark_online()
 
     # Subscribe to stop signals
     STOP_TOPIC = "request/process/stop"

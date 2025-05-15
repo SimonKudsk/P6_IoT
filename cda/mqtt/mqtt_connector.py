@@ -18,6 +18,9 @@ class mqtt_connector:
         self._port = parsed.port or 443
         self._path = parsed.path or "/"
 
+        # Track subscriptions to re-subscribe after reconnects
+        self._subscriptions: list[tuple[str, int]] = []
+
         self._client = mqtt.Client(
             clean_session=True,
             transport="websockets",
@@ -32,6 +35,8 @@ class mqtt_connector:
         self._external_callbacks: List[
             Callable[[mqtt.Client, Any, mqtt.MQTTMessage], None]
         ] = []
+        # Callbacks for on_connect events
+        self._connect_callbacks: list[Callable[[], None]] = []
 
     def connect(self) -> None:
         """Open the broker connection and start the background loop."""
@@ -39,7 +44,7 @@ class mqtt_connector:
         if self._path:
             self._client.ws_set_options(path=self._path)
 
-        self._client.connect(self._host, self._port, keepalive=60)
+        self._client.connect(self._host, self._port, keepalive=30)
         self._client.loop_start()
 
         if not self._connected_event.wait(timeout=5):
@@ -53,7 +58,9 @@ class mqtt_connector:
     def subscribe(self, topic: str, qos: int = 1) -> None:
         """Subscribe to a topic."""
         self._client.subscribe((topic, qos))
-        print(f"MQTT: Subscribed to {topic} (qos={qos})")
+        # Remember this subscription for reconnects
+        self._subscriptions.append((topic, qos))
+        print(f"MQTT: Subscribed to {topic}")
 
     def publish(
         self,
@@ -71,9 +78,23 @@ class mqtt_connector:
         """Register a function to receive *all* incoming MQTT messages."""
         self._external_callbacks.append(callback)
 
+    def register_on_connect(self, callback: Callable[[], None]) -> None:
+        """Register a function to call when MQTT connection is established."""
+        self._connect_callbacks.append(callback)
+
     def _on_connect(self, client, userdata, flags, rc):
         print(f"MQTT: connection established")
         self._connected_event.set()
+        # Re-subscribe to any topics after reconnect
+        for topic, qos in self._subscriptions:
+            self._client.subscribe((topic, qos))
+            print(f"MQTT: Resubscribed to {topic}")
+        # Trigger any on-connect callbacks
+        for cb in self._connect_callbacks:
+            try:
+                cb()
+            except Exception as e:
+                print(f"On-connect callback failed: {e}")
 
     def _on_message(self, client, userdata, msg):
         for cb in self._external_callbacks:
