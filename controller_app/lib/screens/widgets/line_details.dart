@@ -36,7 +36,7 @@ Widget buildProgressSection(
         child: Opacity(
           opacity: (isActive && amountProgress != null) ? 1.0 : 0.2,
           child: LinearProgressIndicator(
-            value: amountProgress,
+            value: amountProgress ?? 0,
             minHeight: 6,
             backgroundColor: Theme.of(context)
                 .colorScheme
