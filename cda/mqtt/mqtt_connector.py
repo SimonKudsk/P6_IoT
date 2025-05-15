@@ -41,7 +41,7 @@ class mqtt_connector:
         if self._path:
             self._client.ws_set_options(path=self._path)
 
-        self._client.connect(self._host, self._port, keepalive=30)
+        self._client.connect(self._host, self._port, keepalive=10)
         self._client.loop_start()
 
         if not self._connected_event.wait(timeout=5):
