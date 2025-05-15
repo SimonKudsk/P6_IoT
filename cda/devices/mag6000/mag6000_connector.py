@@ -26,15 +26,6 @@ class Mag6000Connector:
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    def _mount_device(self):
-        # Sets the device permissions using sudo. Assumes the sudo password
-        #is stored in the environment variable 'sudo_pw'.
-        print("Setting device permissions...")
-        sudo_pw = os.getenv("sudo_pw")
-        if not sudo_pw:
-            raise ValueError("Environment variable 'sudo_pw' is not set.")
-        os.system("echo {} | sudo -S chmod 666 {}".format(sudo_pw, self.port))
-
     def _initialize_instrument(self):
         # Initialize the device, and wait for the device file to be accessible
         #self._mount_device()

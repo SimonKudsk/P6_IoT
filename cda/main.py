@@ -3,6 +3,7 @@ from devices.relay.relay_controller import RelayController
 from functions.flow_monitor import FlowMonitor
 from functions.heater import Heater
 import signal
+from functions.serial_num import get_serial
 from mqtt.mqtt_connector import mqtt_connector
 from mqtt.mqtt_watcher import mqtt_watcher
 from mqtt.mqtt_publisher import mqtt_publisher
@@ -10,8 +11,8 @@ from mqtt.device_status import DeviceStatusPublisher
 import threading
 import json
 
-DEVICE_ID = "cda-001"
-
+# Get the device ID from the serial number
+DEVICE_ID = get_serial()
 
 def deactivate_line(publisher):
     """Stops the current process."""
@@ -45,9 +46,6 @@ def main():
 
     # Set up watcher → listens for new requests
     watcher = mqtt_watcher(mqtt)
-
-    # Implementer at den skal melde om sensorer er tilsluttet eller ej
-    # den skal sende temperatur, liter påfyldt og flowrate i liter/minut undervejs
 
     try:
         while True:
