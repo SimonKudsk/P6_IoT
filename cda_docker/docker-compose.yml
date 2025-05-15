@@ -1,0 +1,14 @@
+services:
+  python_app:
+    restart: always
+    privileged: true
+    devices:
+      - /dev/gpiomem:/dev/gpiomem
+    build:
+      context: ..
+      dockerfile: cda_docker/dockerfiles/python/dockerfile
+    volumes:
+      - ../cda:/app
+      - /sys/class/gpio:/sys/class/gpio
+    working_dir: /app
+    command: python3 -u /app/main.py
