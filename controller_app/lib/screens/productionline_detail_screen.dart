@@ -210,10 +210,10 @@ class _ProductionLineDetailScreenState
                 'Lot number: ${line.displayLotNumber}',
               ),
               Text(
-                'Current Temp: ${line.displayTemp}°C (Target: ${line.displayTemp}°C)',
+                'Current Temp: ${line.displayTemp}°C (Target: ${line.displayTargetTemp}°C)',
               ),
               Text(
-                'Processed Amount: ${line.displayAmount} / ${line.displayAmount} L',
+                'Processed Amount: ${line.displayAmount} / ${line.displayTargetAmount} L',
               ),
               // Show target amount too
 
@@ -293,8 +293,12 @@ class _ProductionLineDetailScreenState
                   decimal: true,
                 ),
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,1}')),
-                  // Allow positive numbers with one decimal
+                  FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                  TextInputFormatter.withFunction((oldValue, newValue) {
+                    return newValue.copyWith(
+                      text: newValue.text.replaceAll(',', '.'),
+                    );
+                  }),
                 ],
                 validator: (value) {
                   // Validation is checked on activation attempt
@@ -302,7 +306,9 @@ class _ProductionLineDetailScreenState
                   if (value == null || value.isEmpty) {
                     return 'Please enter amount';
                   }
-                  final amount = double.tryParse(value);
+                  // Replace comma with dot for validation and parsing
+                  final normalizedValue = value.replaceAll(',', '.');
+                  final amount = double.tryParse(normalizedValue);
                   if (amount == null) {
                     return 'Invalid number';
                   }

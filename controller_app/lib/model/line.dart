@@ -46,6 +46,10 @@ class Line {
       currentTemp == null ? '-' : currentTemp!.toStringAsFixed(1);
   String get displayAmount =>
       processedAmount == null ? '-' : processedAmount!.toStringAsFixed(1);
+  String get displayTargetTemp =>
+      targetTemp == null ? '-' : targetTemp!.toStringAsFixed(1);
+  String get displayTargetAmount =>
+      targetAmount == null ? '-' : targetAmount!.toStringAsFixed(1);
   String get displayLotNumber =>
       lotNumber == null ? '-' : lotNumber!;
   String get displayErrorMsg =>
