@@ -31,6 +31,8 @@ class Line {
         return "Heating";
       case LineStatus.error:
         return "Error";
+      case LineStatus.offline:
+        return "Offline";
     }
   }
 

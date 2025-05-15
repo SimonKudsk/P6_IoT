@@ -79,6 +79,10 @@ class _ProductionLineState extends State<ProductionLines> {
               statusIcon = Icons.stop_circle_outlined;
               statusColor = colorScheme.onSurfaceVariant;
               break;
+            case LineStatus.offline:
+              statusIcon = Icons.signal_wifi_off;
+              statusColor = colorScheme.onSurfaceVariant;
+              break;
             case LineStatus.error:
               statusIcon = Icons.error;
               statusColor = colorScheme.error;

@@ -82,10 +82,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_adaptive_scaffold
-      sha256: "7279d74da2f2531a16d21c2ec327308778c3aedd672dfe4eaf3bf416463501f8"
+      sha256: "5eb1d1d174304a4e67c4bb402ed38cb4a5ebdac95ce54099e91460accb33d295"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.2"
+    version: "0.3.3+1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -191,10 +191,10 @@ packages:
     dependency: "direct main"
     description:
       name: provider
-      sha256: "489024f942069c2920c844ee18bb3d467c69e48955a4f32d1677f71be103e310"
+      sha256: "4abbd070a04e9ddc287673bf5a030c7ca8b685ff70218720abab8b092f53dd84"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.4"
+    version: "6.1.5"
   sky_engine:
     dependency: transitive
     description: flutter

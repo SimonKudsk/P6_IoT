@@ -159,6 +159,9 @@ class _ProductionLineDetailScreenState
       case LineStatus.stopped:
         statusColor = colorScheme.onSurfaceVariant;
         break;
+      case LineStatus.offline:
+        statusColor = colorScheme.onSurfaceVariant;
+        break;
       case LineStatus.error:
         statusColor = colorScheme.error;
         break;

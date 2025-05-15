@@ -149,6 +149,13 @@ class PasteurizationSimulation extends PasteurizationBase {
             }
             break;
 
+        /// Offline
+          case LineStatus.offline:
+            // Simulate offline state
+            line.currentTemp = null;
+            line.processedAmount = null;
+            break;
+
         /// Error / stop state
           case LineStatus.stopped:
           case LineStatus.error:
