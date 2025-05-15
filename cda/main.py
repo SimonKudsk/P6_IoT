@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from devices.mag6000.mag6000_connector import Mag6000Connector
 from devices.relay.relay_controller import RelayController
 from functions.flow_monitor import FlowMonitor
@@ -12,6 +14,8 @@ import threading
 import json
 
 # Get the device ID from the serial number
+load_dotenv()
+MQTT_DOMAIN = os.getenv("MQTT_DOMAIN")
 DEVICE_ID = get_serial()
 
 def deactivate_line(publisher):
@@ -32,8 +36,10 @@ def main():
     # Register SIGTERM, to cancel execution on termination
     signal.signal(signal.SIGTERM, _shutdown_handler)
 
+    print(MQTT_DOMAIN)
+
     # MQTT connection
-    mqtt = mqtt_connector()
+    mqtt = mqtt_connector(MQTT_DOMAIN)
     status_publisher = DeviceStatusPublisher(mqtt, DEVICE_ID)
     status_publisher.configure_lwt()
     # When connected, instantly mark as online

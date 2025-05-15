@@ -2,21 +2,19 @@ from __future__ import annotations
 import threading
 from typing import Callable, List, Any
 import paho.mqtt.client as mqtt
-from urllib.parse import urlparse
 import ssl
 
 class mqtt_connector:
 
     def __init__(
         self,
-        broker_url: str = "wss://mosquitto.waterguys.dk:443/",
+        broker_url: str,
     ) -> None:
         print(f"MQTT: Initialising connector for {broker_url}")
-        parsed = urlparse(broker_url)
 
-        self._host = parsed.hostname
-        self._port = parsed.port or 443
-        self._path = parsed.path or "/"
+        self._host = broker_url
+        self._port = 443
+        self._path = "/"
 
         # Track subscriptions to re-subscribe after reconnects
         self._subscriptions: list[tuple[str, int]] = []
@@ -25,8 +23,7 @@ class mqtt_connector:
             clean_session=True,
             transport="websockets",
         )
-        if parsed.scheme == "wss":
-            self._client.tls_set_context(ssl.create_default_context())
+        self._client.tls_set_context(ssl.create_default_context())
 
         self._client.on_connect = self._on_connect
         self._client.on_message = self._on_message
