@@ -150,37 +150,47 @@ class PasteurizationController extends PasteurizationBase {
     // Reset line status
     final line = getLineById(lineId);
     if (line != null) {
-      line.status = LineStatus.stopped;
+      line.status = LineStatus.available;
       notifyListeners();
     }
   }
 
   /// Map availability to our UI status.
-  LineStatus _mapAvailability(DeviceAvailability avail) {
+  LineStatus _mapAvailability(LineStatus avail) {
     switch (avail) {
-      case DeviceAvailability.available:
+      case LineStatus.available:
         return LineStatus.stopped;
-      case DeviceAvailability.occupied:
+      case LineStatus.running:
         return LineStatus.filling;
-      case DeviceAvailability.offline:
+      case LineStatus.offline:
         return LineStatus.offline;
-      case DeviceAvailability.error:
+      case LineStatus.error:
         return LineStatus.error;
+      case LineStatus.stopped:
+        return LineStatus.stopped;
+      case LineStatus.filling:
+        return LineStatus.filling;
+      case LineStatus.heating:
+        return LineStatus.heating;
     }
   }
 
   /// Handle an incoming status update.
-  void _onDeviceStatusUpdate(DeviceStatus status) {
-    final idx = _lines.indexWhere((l) => l.id == status.deviceId);
+  void _onDeviceStatusUpdate(DeviceStatus deviceStatus) {
+    final idx = _lines.indexWhere((l) => l.id == deviceStatus.deviceId);
     if (idx >= 0) {
       // update existing line
-      _lines[idx].status = _mapAvailability(status.availability);
+      _lines[idx].status = _mapAvailability(deviceStatus.status);
+      _lines[idx].lotNumber = deviceStatus.lotNumber;
+      _lines[idx].errorMsg = deviceStatus.errorMsg;
     } else {
       // add new device
       _lines.add(Line(
-        id: status.deviceId,
-        name: 'CDA ${status.deviceId}',
-        status: _mapAvailability(status.availability),
+        id: deviceStatus.deviceId,
+        name: 'CDA ${deviceStatus.deviceId}',
+        status: _mapAvailability(deviceStatus.status),
+        lotNumber: deviceStatus.lotNumber,
+        errorMsg: deviceStatus.errorMsg,
       ));
     }
     notifyListeners();

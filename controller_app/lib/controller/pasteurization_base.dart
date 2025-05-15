@@ -31,6 +31,7 @@ abstract class PasteurizationBase extends ChangeNotifier {
     final line = getLineById(lineId);
     if (line?.status == LineStatus.error) {
       line!.status = LineStatus.stopped;
+      line.errorMsg = null;
       notifyListeners();
     }
   }

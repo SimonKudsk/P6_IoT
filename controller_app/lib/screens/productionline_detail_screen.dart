@@ -168,6 +168,8 @@ class _ProductionLineDetailScreenState
       case LineStatus.running:
         statusColor = Colors.green.shade600;
         break;
+      case LineStatus.available:
+        statusColor = colorScheme.onSurfaceVariant;
     }
 
     // --- Calculate Amount Progress ---
@@ -202,10 +204,16 @@ class _ProductionLineDetailScreenState
               ),
               const SizedBox(height: 8),
               Text(
-                'Current Temp: ${line.displayTemp}°C (Target: ${line.targetTemp?.toStringAsFixed(1) ?? '-'}°C)',
+                'Error Message: ${line.displayErrorMsg}',
               ),
               Text(
-                'Processed Amount: ${line.displayAmount} / ${line.targetAmount?.toStringAsFixed(1) ?? '-'} L',
+                'Lot number: ${line.displayLotNumber}',
+              ),
+              Text(
+                'Current Temp: ${line.displayTemp}°C (Target: ${line.displayTemp}°C)',
+              ),
+              Text(
+                'Processed Amount: ${line.displayAmount} / ${line.displayAmount} L',
               ),
               // Show target amount too
 

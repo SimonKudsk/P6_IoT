@@ -85,10 +85,14 @@ class _ProductionLineState extends State<ProductionLines> {
               break;
             case LineStatus.error:
               statusIcon = Icons.error;
-              statusColor = colorScheme.error;
+              statusColor = Colors.red;
               break;
             case LineStatus.running:
               statusIcon = Icons.play_circle_fill;
+              statusColor = Colors.green.shade600;
+              break;
+            case LineStatus.available:
+              statusIcon = Icons.check_circle_outline;
               statusColor = Colors.green.shade600;
               break;
           }

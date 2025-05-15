@@ -1,1 +1,1 @@
-enum LineStatus { stopped, running, filling, heating, offline, error }
+enum LineStatus { stopped, running, filling, heating, offline, error, available }

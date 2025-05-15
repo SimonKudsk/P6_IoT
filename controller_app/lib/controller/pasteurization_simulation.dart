@@ -177,6 +177,8 @@ class PasteurizationSimulation extends PasteurizationBase {
             line.status = LineStatus.stopped;
             changed = true;
             break;
+          case LineStatus.available:
+            line.status = LineStatus.available;
         }
 
         // --- Clamp Temperature (Safety Net) ---

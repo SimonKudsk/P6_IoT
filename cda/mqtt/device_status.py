@@ -55,7 +55,7 @@ class DeviceStatusPublisher:
         """Publish 'error' with an error message."""
         self._connector.publish(
             self._status_topic,
-            json.dumps({"status": "error", "message": error_message}),
+            json.dumps({"status": "error", "error_message": error_message}),
             qos=1,
             retain=True
         )

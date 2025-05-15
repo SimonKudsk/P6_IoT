@@ -1,21 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:mqtt_client/mqtt_client.dart';
+import '../model/enum/LineStatus.dart';
 import 'mqtt_manager.dart';
-
-/// Represents a device's current availability state.
-enum DeviceAvailability { available, occupied, offline, error }
 
 /// Carries a status update for a device.
 class DeviceStatus {
   final String deviceId;
-  final DeviceAvailability availability;
+  final LineStatus status;
   final String? lotNumber;
+  final String? errorMsg;
 
   DeviceStatus({
     required this.deviceId,
-    required this.availability,
+    required this.status,
     this.lotNumber,
+    this.errorMsg,
   });
 }
 
@@ -63,25 +63,27 @@ class DeviceStatusService {
     }
     final raw = data['status'] as String? ?? '';
     final lot = data['lot_number'] as String?;
-    DeviceAvailability avail;
+    final error = data['error_message'] as String?;
+    LineStatus status;
     switch (raw) {
       case 'occupied':
-        avail = DeviceAvailability.occupied;
+        status = LineStatus.running;
         break;
       case 'error':
-        avail = DeviceAvailability.error;
+        status = LineStatus.error;
         break;
       case 'available':
-        avail = DeviceAvailability.available;
+        status = LineStatus.available;
         break;
       case 'offline':
       default:
-        avail = DeviceAvailability.offline;
+        status = LineStatus.offline;
     }
     _controller.add(DeviceStatus(
       deviceId: deviceId,
-      availability: avail,
+      status: status,
       lotNumber: lot,
+      errorMsg: error,
     ));
   }
 
