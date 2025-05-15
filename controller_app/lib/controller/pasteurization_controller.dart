@@ -27,8 +27,8 @@ class PasteurizationController extends PasteurizationBase {
   /// Mapping of line IDs to active lot numbers for tracking order progress.
   final Map<String, String> _lotForLine = {};
 
-  PasteurizationController(String brokerUrl, String clientId)
-      : _manager = MqttManager(brokerUrl, clientId) {
+  PasteurizationController(String clientId)
+      : _manager = MqttManager(clientId) {
     _init();
   }
 

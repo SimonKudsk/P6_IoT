@@ -1,6 +1,7 @@
 import 'package:controller_app/screens/productionline_detail_screen.dart';
 import 'package:controller_app/screens/productionlines_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'controller/pasteurization_simulation.dart';
 import 'package:controller_app/controller/pasteurization_controller.dart';
@@ -8,6 +9,8 @@ import 'package:controller_app/model/settings_model.dart';
 import 'package:controller_app/controller/pasteurization_base.dart';
 
 void main() async {
+
+  await dotenv.load(fileName: ".env");
 
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -32,7 +35,6 @@ class MyApp extends StatelessWidget {
         final PasteurizationBase model = settings.useSimulation
             ? PasteurizationSimulation()
             : PasteurizationController(
-                'wss://mosquitto.waterguys.dk',
                 'flutter-ui-${DateTime.now().millisecondsSinceEpoch}',
               );
 

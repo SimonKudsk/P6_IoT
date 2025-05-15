@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Import of platform-specific MQTT client implementations
 import 'mqtt_platform_clients/mqtt_platform_client_stub.dart'
@@ -11,7 +11,8 @@ class MqttManager {
   MqttClient? client;
   final String identifier;
 
-  MqttManager(String brokerUrl, this.identifier) {
+  MqttManager(this.identifier) {
+    String brokerUrl = 'wss://${dotenv.env['MQTT_DOMAIN']}';
     // Create a new MQTT client instance
     client = getPlatformMqttClient(brokerUrl, identifier);
     client!.logging(on: true);
