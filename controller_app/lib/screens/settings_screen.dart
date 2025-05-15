@@ -9,16 +9,20 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppSettings>(
       builder: (context, settings, _) {
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            SwitchListTile(
-              title: const Text('Use simulation data'),
-              subtitle: const Text('Uses simulation instead of real data when enabled.'),
-              value: settings.useSimulation,
-              onChanged: (val) => settings.useSimulation = val,
-            ),
-          ],
+        return SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Card(
+                child: SwitchListTile(
+                  title: const Text('Use simulation data'),
+                  subtitle: const Text('Uses simulation instead of real data when enabled.'),
+                  value: settings.useSimulation,
+                  onChanged: (val) => settings.useSimulation = val,
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
