@@ -72,9 +72,15 @@ class ProductionLineDetailViewController {
 
   /// Get the amount progress on flow or heating
   double? get amountProgress {
-    if (line.targetAmount != null &&
-        line.targetAmount! > 0 &&
-        line.processedAmount != null) {
+    if (isHeating) {
+      // Get heating progress by temperature
+      if (line.targetTemp != null && line.targetTemp! > 0 && line.currentTemp != null) {
+        return (line.currentTemp! / line.targetTemp!).clamp(0.0, 1.0);
+      }
+      return null;
+    }
+    // Default to filling progress by amount
+    if (line.targetAmount != null && line.targetAmount! > 0 && line.processedAmount != null) {
       return (line.processedAmount! / line.targetAmount!).clamp(0.0, 1.0);
     }
     return null;
