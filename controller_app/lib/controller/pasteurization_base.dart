@@ -26,7 +26,6 @@ abstract class PasteurizationBase extends ChangeNotifier {
   void deactivateLine(String lineId);
 
   /// Default implementation to reset a line in error state.
-  @protected
   void resetLineError(String lineId) {
     final line = getLineById(lineId);
     if (line?.status == LineStatus.error) {
