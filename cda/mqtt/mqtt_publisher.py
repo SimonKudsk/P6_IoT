@@ -19,26 +19,26 @@ class mqtt_publisher:
     def _publish(self, topic: str, data: dict) -> None:
         """
         Send `data` as JSON on *topic* (with the retain flag set).
-        All payloads carry `lot_id`, `line`, and `device="pi"` as required by the interface spec.
+        All payloads carry `lot_id`, `line`, and `device="pi".
         """
         data |= {"lot_number": self._lot_id, "line": self._line, "device": "pi"}
         self._connector.publish(topic, json.dumps(data), qos=1, retain=True)
 
     def publish_flow_progress(self, liters: float) -> None:
-        """Send an in‑flight update from the flow gauge."""
+        """Send an in‑progress update from flow gauge."""
         self._publish(FLOW_PROGRESS_TOPIC, {"liters": liters})
 
     def publish_flow_final(self, liters: float) -> None:
-        """Send an in‑flight update from the flow gauge."""
+        """Send the final total reading from the flow gauge."""
         self._publish(FLOW_FINAL_TOPIC, {"liters": liters})
         print("Publishing final results L" + str(liters))
 
     def publish_temp_progress(self, temperature: float) -> None:
-        """Send an in‑flight update from the temperature sensor."""
+        """Send an in‑progress update from the temperature sensor."""
         self._publish(TEMP_PROGRESS_TOPIC, {"temperature": temperature})
 
     def publish_temp_final(self, temperature: float) -> None:
-        """Send an in‑flight update from the temperature sensor."""
+        """Send the final temperature from the temperature sensor."""
         self._publish(TEMP_FINAL_TOPIC, {"temperature": temperature})
         print("Publishing final results at °C" + str(temperature))
 
