@@ -1,16 +1,10 @@
 # controller_app
+This Flutter app is made to control the CDA device. It communicates with the server via MQTT, sending orders and receiving updates to display on the app.
 
-App for controlling P6 project.
+## Environment variables
+Before running the project, make sure to configure the environment variables in the `.env` file. An example file is provided as `.env_example`. Copy this file to `.env` and edit it to fit your needs.
 
-## Getting Started
+Currently, there is only one environment variable.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### MQTT_DOMAIN
+The project uses MQTT to communicate with the server. The domain should be set to the domain of the server. Please note, this must be passed through HTTPS port 443, and use wss for the websocket connection. As port and protocol is hardcoded for compatibility, this should not be in the `.env` file.
