@@ -40,12 +40,15 @@ class FlowMonitor:
         self.pump_controller.toggle_relay(True)
 
         last_flow_time = time.time()
+        # Wait for the flow to start
         while not started:
             current_total = self.reader.read_totalizer()
+            # If the totalizer has moved, we can assume that the flow has started
             if current_total > baseline_total:
                 started = True
                 last_flow_time = time.time()
                 print("Flow has started")
+            # If the totalizer has not moved for 10 seconds, abort
             elif time.time() - last_flow_time > 10:
                 print("ERROR: No flow detected for 10 seconds after starting the pump. Aborting execution.")
                 self.pump_controller.toggle_relay(False)
@@ -82,19 +85,25 @@ class FlowMonitor:
             highest_volume = max(current_total, volume_moved)
 
             print(f"Progress: {highest_volume:.2f} out of {self.target_liters:.2f} liters passed")
+            # Publish the current volume to MQTT
             self.publisher.publish_flow_progress(highest_volume)
 
+            # Check if the flow rate is above the threshold of water moving
             if flow_rate > self.flow_threshold:
                 print(f"Flow going at {flow_rate:.2f} l/h")
                 last_flow_time = current_timestamp  # update the last time flow was detected
             else:
+                # If the flow rate is below the threshold, check if we have been waiting for 10 seconds without flow
                 print("ERROR SIGNAL: No flow detected. Waiting 10 seconds before aborting.")
+                # If we have not seen flow for 10 seconds, stop the pump
                 if last_flow_time is not None and (current_timestamp - last_flow_time > 10):
                     print("ERROR: No flow detected for more than 10 seconds. Aborting.")
                     self.pump_controller.toggle_relay(False)
                     return None
 
+            # Check if the target volume has been reached, within a tolerance of 50ml
             if highest_volume >= self.target_liters - 0.05:
+                # Turn off the pump, and return the volume moved
                 self.pump_controller.toggle_relay(False)
                 print("FINISHED: Target reached.")
                 return highest_volume

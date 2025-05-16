@@ -16,6 +16,7 @@ String _utcTimestamp() {
 class MqttPublisher {
   final MqttClient client;
 
+  // Define the topic for publishing orders
   static const String _topicRequest = "request/process";
 
   MqttPublisher(this.client);
@@ -41,7 +42,10 @@ class MqttPublisher {
     final builder = MqttClientPayloadBuilder()..addString(json.encode(order));
     client.publishMessage(
       _topicRequest,
+      // Use atLeastOnce QoS for message delivery
+      // This ensures the message is delivered at least once
       MqttQos.atLeastOnce,
+      // Publish the order as a payload
       builder.payload!,
     );
 

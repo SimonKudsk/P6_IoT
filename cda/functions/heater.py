@@ -29,24 +29,36 @@ class Heater:
                 # Check for stop signal
                 if self._stop_event and self._stop_event.is_set():
                     print("Batch stopped by user.")
+                    # Stop the heater and return none
+                    self.is_heating = False
                     self.relay_controller.toggle_relay(False)
                     return None
 
+                # Read the current temperature
                 current_temp = self.temp_sensor.read_temp_c()
                 print(f"Current temperature: {current_temp:.2f} °C")
+                # Publish the current temperature to MQTT
                 self.publisher.publish_temp_progress(current_temp)
 
+                # Check if the current temperature is equal to orabove the target temperature
                 if current_temp >= self.target_temperature:
                     print("Target temperature reached. Stopping heater.")
+                    # Stop the heater
                     self.relay_controller.toggle_relay(False)
                     self.is_heating = False
                 else:
+                    # If the target temperature is not reached, keep heating
                     print("Heating...")
-                    time.sleep(0.1)  # check temperature every 0.1 seconds
+                    # Check temperature every 0.1 seconds
+                    time.sleep(0.1)
 
+            # Done - return the current temperature
             return self.temp_sensor.read_temp_c()
+
+        # If the temperature sensor fails, stop heating
         except DS18B20Error as exc:
             print(f"Error reading temperature: {exc}")
+            # Stop the heater and return none
             self.relay_controller.toggle_relay(False)
             self.is_heating = False
             return None

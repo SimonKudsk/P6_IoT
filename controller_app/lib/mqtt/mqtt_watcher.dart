@@ -57,9 +57,10 @@ class MqttWatcher {
     // Parse the payload as JSON
     Map<String, dynamic> data;
     try {
+      // Decode the payload string to a Map
       data = json.decode(payloadStr) as Map<String, dynamic>;
     } on FormatException {
-      return; // not JSON → ignore
+      return; // ignore if not json
     }
 
     // Ignore messages that are not for our order
@@ -68,7 +69,7 @@ class MqttWatcher {
     // Extract the topic
     final topic = rec.topic;
 
-    // Handle the message based on the current stage
+    // If we are in the flow stage, check for flow progress or final
     if (_stage == 'flow') {
       if (topic == _topicFlowProgress) {
         _progressCtrl.add({'stage': _stage, 'data': data});
@@ -76,6 +77,7 @@ class MqttWatcher {
         _progressCtrl.add({'stage': _stage, 'data': data, 'final': true});
         _stage = 'temp';
       }
+    // If we are in the temp stage, check for temp progress or final
     } else if (_stage == 'temp') {
       if (topic == _topicTempProgress) {
         _progressCtrl.add({'stage': _stage, 'data': data});
