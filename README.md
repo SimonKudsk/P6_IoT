@@ -23,6 +23,6 @@ This is the server-side Docker Compose setup for our project. It uses the follow
 - `telegraf`: The data collector. This is used to collect the data from the MQTT broker and send it to the InfluxDB database.
 - `influxdb`: The time-series database. This is used to store the data from the CDA device.
 - `grafana`: The dashboard. This is used to visualize the data from the InfluxDB database.
-- `nodered`: The flow-based programming tool. This is used to create the flows for the CDA device. It is also used to create the dashboard for the CDA device.
+- `nodered`: The flow-based programming tool. This is used to simulate the CDA device and send data to the MQTT broker.
 
 More can be read, including setup, in the [readme](server/README.md) in the `server` folder.
