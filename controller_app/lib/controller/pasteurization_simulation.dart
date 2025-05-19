@@ -105,73 +105,22 @@ class PasteurizationSimulation extends PasteurizationBase {
         switch (line.status) {
         /// Filling phase
           case LineStatus.filling:
-            if ((line.processedAmount ?? 0) < (line.targetAmount ?? 0)) {
-              double fillRateRange = _fillRateMaxLitersPerSec - _fillRateMinLitersPerSec;
-              double currentFillRate = _fillRateMinLitersPerSec + _random.nextDouble() * fillRateRange;
-              double amountToAdd = currentFillRate * timeDelta;
-
-              line.processedAmount = (line.processedAmount ?? 0) + amountToAdd;
-              line.processedAmount =
-                  min(line.processedAmount!, line.targetAmount ?? line.processedAmount!);
-
-              // Check if filling is complete
-              if (line.targetAmount != null &&
-                  line.processedAmount! >= line.targetAmount!) {
-                line.status = LineStatus.heating;
-                print("${line.name}: Filling complete (${line.processedAmount?.toStringAsFixed(1)}L). Starting heating.");
-              }
-            } else {
-              line.status = LineStatus.heating;
-            }
+            _simulateFilling(line, timeDelta);
             break;
-
         /// Heating phase
           case LineStatus.heating:
-            if (line.currentTemp != null &&
-                line.targetTemp != null &&
-                line.currentTemp! < line.targetTemp!) {
-              double tempDiff = line.targetTemp! - line.currentTemp!;
-
-              // Check if close enough to target
-              if (tempDiff.abs() <= _completionThreshold) {
-                line.currentTemp = line.targetTemp;
-                line.status = LineStatus.stopped;
-                print("${line.name}: Heating complete (Reached ${line.currentTemp?.toStringAsFixed(1)}°C). Process finished.");
-              } else {
-                double tempChange = tempDiff * _heatingFactor * timeDelta;
-                line.currentTemp = (line.currentTemp ?? 0) + tempChange;
-              }
-            } else {
-              // Already at or above target temp
-              line.currentTemp = line.targetTemp;
-              line.status = LineStatus.stopped;
-              print("${line.name}: Already at/above target temp (${line.currentTemp?.toStringAsFixed(1)}°C). Finishing.");
-            }
+            _simulateHeating(line, timeDelta);
             break;
-
         /// Offline
           case LineStatus.offline:
-            // Simulate offline state
+          // Simulate offline state
             line.currentTemp = null;
             line.processedAmount = null;
             break;
-
         /// Error / stop state
           case LineStatus.stopped:
           case LineStatus.error:
-          // Cool down towards ambient temperature
-            if (line.currentTemp != null &&
-                (line.currentTemp! - ambientTemp).abs() > 0.1) {
-              double tempDiff = ambientTemp - line.currentTemp!;
-              double tempChange = tempDiff * _coolingFactor * timeDelta;
-              line.currentTemp = (line.currentTemp ?? 0) + tempChange;
-
-              if ((tempChange > 0 && line.currentTemp! > ambientTemp) || (tempChange < 0 && line.currentTemp! < ambientTemp)) {
-                line.currentTemp = ambientTemp;
-              }
-            } else if (line.currentTemp != null && line.currentTemp != ambientTemp) {
-              line.currentTemp = ambientTemp;
-            }
+            _simulateCooling(line, timeDelta);
             break;
           case LineStatus.running:
             line.status = LineStatus.stopped;
@@ -181,10 +130,8 @@ class PasteurizationSimulation extends PasteurizationBase {
             line.status = LineStatus.available;
         }
 
-        // --- Clamp Temperature (Safety Net) ---
-        if (line.currentTemp != null) {
-          line.currentTemp = line.currentTemp!.clamp(0.0, 150.0);
-        }
+        // --- Max temperature ---
+        _maxTemperature(line);
 
         // --- Check if anything actually changed for this line ---
         if (line.currentTemp != previousTemp ||
@@ -199,5 +146,71 @@ class PasteurizationSimulation extends PasteurizationBase {
         notifyListeners();
       }
     });
+  }
+
+  // --- Helper Functions for Simulation Phases ---
+  /// Generates a random fill rate between min and max.
+  double _generateFillRate() {
+    final range = _fillRateMaxLitersPerSec - _fillRateMinLitersPerSec;
+    return _fillRateMinLitersPerSec + _random.nextDouble() * range;
+  }
+
+  /// Simulates the filling phase for a line.
+  void _simulateFilling(Line line, double timeDelta) {
+    if ((line.processedAmount ?? 0) < (line.targetAmount ?? 0)) {
+      final fillRate = _generateFillRate();
+      final amountToAdd = fillRate * timeDelta;
+      line.processedAmount = (line.processedAmount ?? 0) + amountToAdd;
+      line.processedAmount =
+          min(line.processedAmount!, line.targetAmount ?? line.processedAmount!);
+      // Check if filling is complete
+      if (line.targetAmount != null && line.processedAmount! >= line.targetAmount!) {
+        line.status = LineStatus.heating;
+        print("${line.name}: Filling complete (${line.processedAmount?.toStringAsFixed(1)}L). Starting heating.");
+      }
+    } else {
+      line.status = LineStatus.heating;
+    }
+  }
+
+  /// Simulates the heating phase for a line.
+  void _simulateHeating(Line line, double timeDelta) {
+    if (line.currentTemp != null && line.targetTemp != null && line.currentTemp! < line.targetTemp!) {
+      final tempDiff = line.targetTemp! - line.currentTemp!;
+      if (tempDiff.abs() <= _completionThreshold) {
+        line.currentTemp = line.targetTemp;
+        line.status = LineStatus.stopped;
+        print("${line.name}: Heating complete (Reached ${line.currentTemp?.toStringAsFixed(1)}°C). Process finished.");
+      } else {
+        final tempChange = tempDiff * _heatingFactor * timeDelta;
+        line.currentTemp = (line.currentTemp ?? 0) + tempChange;
+      }
+    } else {
+      line.currentTemp = line.targetTemp;
+      line.status = LineStatus.stopped;
+      print("${line.name}: Already at/above target temp (${line.currentTemp?.toStringAsFixed(1)}°C). Finishing.");
+    }
+  }
+
+  /// Simulates cooling towards ambient temperature for a line.
+  void _simulateCooling(Line line, double timeDelta) {
+    if (line.currentTemp != null && (line.currentTemp! - ambientTemp).abs() > 0.1) {
+      final tempDiff = ambientTemp - line.currentTemp!;
+      final tempChange = tempDiff * _coolingFactor * timeDelta;
+      line.currentTemp = (line.currentTemp ?? 0) + tempChange;
+      if ((tempChange > 0 && line.currentTemp! > ambientTemp) ||
+          (tempChange < 0 && line.currentTemp! < ambientTemp)) {
+        line.currentTemp = ambientTemp;
+      }
+    } else if (line.currentTemp != null && line.currentTemp != ambientTemp) {
+      line.currentTemp = ambientTemp;
+    }
+  }
+
+  /// Sets the limit of line temperature to a maximum of 150 degrees
+  void _maxTemperature(Line line) {
+    if (line.currentTemp != null) {
+      line.currentTemp = line.currentTemp!.clamp(0.0, 150.0);
+    }
   }
 }

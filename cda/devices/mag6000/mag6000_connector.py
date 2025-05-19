@@ -6,7 +6,7 @@ import serial
 class Mag6000Connector:
     def __init__(self):
         # Initialize the connector with a port and slave address.
-        self.port = "/dev/ttyUSB0"
+        self.port = os.getenv("FLOW_GAUGE_PORT")
         self.slave_address = 1
         self.instrument = None
         self._initialize_instrument()
