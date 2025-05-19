@@ -30,8 +30,8 @@ def _shutdown_handler(signum, frame):
 
 def main():
     # GPIO pins
-    kettle_relay_pin = os.getenv("KETTLE_RELAY_PIN")
-    pump_relay_pin = os.getenv("PUMP_RELAY_PIN")
+    kettle_relay_pin = int(os.getenv("KETTLE_RELAY_PIN"))
+    pump_relay_pin = int(os.getenv("PUMP_RELAY_PIN"))
 
     # Register SIGTERM, to cancel execution on termination
     signal.signal(signal.SIGTERM, _shutdown_handler)

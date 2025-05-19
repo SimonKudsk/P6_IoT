@@ -1,9 +1,13 @@
 import unittest
 import RPi.GPIO as GPIO
 import time
+import os
+from dotenv import load_dotenv
 
 class TestRelayControl(unittest.TestCase):
-    relay_pin = 17
+    load_dotenv()
+    relay_pin = int(os.getenv("PUMP_RELAY_PIN"))
+    print("Relay pin:", relay_pin)
 
     def setUp(self):
         GPIO.setmode(GPIO.BCM)

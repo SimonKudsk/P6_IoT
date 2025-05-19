@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 import unittest
 import minimalmodbus
 import serial
@@ -5,8 +7,10 @@ import struct
 
 class TestTotalizerMinimalmodbus(unittest.TestCase):
     def setUp(self):
+        load_dotenv()
+        port = os.getenv("FLOW_GAUGE_PORT")
         # Create a minimalmodbus Instrument instance for the device
-        self.instrument = minimalmodbus.Instrument('/dev/ttyUSB0', 1)  # port, slave address
+        self.instrument = minimalmodbus.Instrument(port, 1)  # port, slave address
         # Configure the serial settings per MAG6000 default
         self.instrument.serial.baudrate = 19200
         self.instrument.serial.bytesize = 8
